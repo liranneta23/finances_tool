@@ -52,8 +52,8 @@ def calculate_total_linear_interest(mortgage_amount, interest_rate, years):
 
     remaining_capital = mortgage_amount
 
-    for i in range(years):
-        total_interest += remaining_capital * interest_rate
+    for i in range(years * MONTHS_IN_YEAR):  # calculate the remaining capital and total interest for every single month
+        total_interest += remaining_capital * interest_rate / 12
         remaining_capital -= monthly_principal
 
     return total_interest
@@ -131,6 +131,8 @@ def mortgage():
     mortgage_amount = house_price - own_participation - gift_net
     interest_rate = round(find_interest_rate(years, mortgage_amount / house_price) / 100,
                           4)  # divide by 100 since its percentage
+
+    print(f"Interest Rate: {interest_rate * 100}%")
 
     years = int(years)
 
