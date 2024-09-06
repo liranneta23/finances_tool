@@ -1,4 +1,4 @@
-from constants import interest_rates
+from constants import interest_rates, INTEREST_DEDUCTION
 from gifts import gift_tax_net
 
 MONTHS_IN_YEAR = 12
@@ -48,15 +48,18 @@ def find_interest_rate(years, portion):
 
 def calculate_total_linear_interest(mortgage_amount, interest_rate, years):
     total_interest = 0
+    total_tax_return = 0
     monthly_principal = mortgage_amount / (years * MONTHS_IN_YEAR)
 
-    remaining_capital = mortgage_amount
+    remaining_balance = mortgage_amount
 
     for i in range(years * MONTHS_IN_YEAR):  # calculate the remaining capital and total interest for every single month
-        total_interest += remaining_capital * interest_rate / 12
-        remaining_capital -= monthly_principal
+        current_interest = remaining_balance * interest_rate / 12
+        total_tax_return += current_interest * (INTEREST_DEDUCTION / 100)
+        total_interest += current_interest
+        remaining_balance -= monthly_principal
 
-    return total_interest
+    return total_interest, total_tax_return
 
 
 def calculate_dutch_linear_mortgage(mortgage_amount, interest_rate, years):
@@ -75,27 +78,30 @@ def calculate_dutch_linear_mortgage(mortgage_amount, interest_rate, years):
     # Calculate final total monthly payment
     final_monthly_payment = monthly_principal + final_monthly_interest
 
-    total_interest = calculate_total_linear_interest(mortgage_amount, interest_rate, years)
+    total_interest, total_tax_return = calculate_total_linear_interest(mortgage_amount, interest_rate, years)
 
-    return initial_monthly_payment, final_monthly_payment, mortgage_amount, total_interest
+    return initial_monthly_payment, final_monthly_payment, mortgage_amount, total_interest, total_tax_return
 
 
 def linear_mortgage(mortgage_amount, interest_rate, years):
-    initial_payment, final_payment, mortgage_amount, total_interest = calculate_dutch_linear_mortgage(mortgage_amount,
-                                                                                                      interest_rate,
-                                                                                                      years)
+    initial_payment, final_payment, mortgage_amount, total_interest, total_tax_return = calculate_dutch_linear_mortgage(
+        mortgage_amount,
+        interest_rate,
+        years)
 
-    print(f"Mortgage amount: €{mortgage_amount:.2f}")
     print(f"Initial monthly payment: €{initial_payment:.2f}")
     print(f"Final monthly payment: €{final_payment:.2f}")
     print(f"Monthly payment decrease: €{initial_payment - final_payment:.2f}")
     print(f"Total interest paid : €{total_interest:.2f}")
-    print(f"Total amount paid over {years} years: €{mortgage_amount + total_interest:.2f}")
+    print(f"Total Tax return : €{total_tax_return:.2f}")
+    print(f"Total Interest Net (after Tax return) : €{total_interest - total_tax_return:.2f}")
+    print(f"Total Gross amount paid over {years} years: €{mortgage_amount + total_interest:.2f}")
+    print(f"Total Net amount (after Tax return) paid over {years} years: €{mortgage_amount + total_interest - total_tax_return:.2f}")
 
 
 def calculate_annuity_mortgage_payment(principal, interest_rate, years):
-    monthly_rate = interest_rate / 12
-    num_payments = years * 12
+    monthly_rate = interest_rate / MONTHS_IN_YEAR
+    num_payments = years * MONTHS_IN_YEAR
 
     # Calculate monthly payment
     if monthly_rate == 0:
@@ -106,6 +112,21 @@ def calculate_annuity_mortgage_payment(principal, interest_rate, years):
         return monthly_payment
 
 
+def calculate_total_annuity_interest(total_paid, monthly_principal, mortgage_amount, interest_rate, years):
+    total_interest = total_paid - mortgage_amount
+    total_tax_return = 0
+
+    remaining_balance = mortgage_amount
+
+    for i in range(years * MONTHS_IN_YEAR):  # calculate the remaining capital and total interest for every single month
+        current_interest = remaining_balance * interest_rate / 12
+        current_capital = monthly_principal - current_interest
+        total_tax_return += current_interest * (INTEREST_DEDUCTION / 100)
+        remaining_balance -= current_capital
+
+    return total_interest, total_tax_return
+
+
 def annuity_mortgage(mortgage_amount, interest_rate, years):
     monthly_payment = calculate_annuity_mortgage_payment(mortgage_amount, interest_rate, years)
     print(
@@ -113,9 +134,12 @@ def annuity_mortgage(mortgage_amount, interest_rate, years):
 
     # Calculate total amount paid over the life of the loan
     total_paid = monthly_payment * years * MONTHS_IN_YEAR
-    total_interest = total_paid - mortgage_amount
+    total_interest, total_tax_return = calculate_total_annuity_interest(total_paid, monthly_payment, mortgage_amount, interest_rate, years)
     print(f"Total interest paid: €{total_interest:.2f}")
-    print(f"Total amount paid over {years} years: €{total_paid:.2f}")
+    print(f"Total Tax return : €{total_tax_return:.2f}")
+    print(f"Total Interest Net (after Tax return) : €{total_interest - total_tax_return:.2f}")
+    print(f"Total Gross amount paid over {years} years: €{total_paid:.2f}")
+    print(f"Total Net amount (after Tax return) paid over {years} years: €{total_paid - total_tax_return:.2f}")
 
 
 def mortgage():
@@ -132,6 +156,7 @@ def mortgage():
     interest_rate = round(find_interest_rate(years, mortgage_amount / house_price) / 100,
                           4)  # divide by 100 since its percentage
 
+    print(f"Mortgage amount: €{mortgage_amount:.2f}")
     print(f"Interest Rate: {interest_rate * 100}%")
 
     years = int(years)

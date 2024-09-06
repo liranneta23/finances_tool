@@ -1,3 +1,5 @@
+INTEREST_DEDUCTION = 36.93  # in percentage
+
 interest_rates = {
     "Variable": {
         "NHG": 5.25,
