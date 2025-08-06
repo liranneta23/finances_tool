@@ -1,0 +1,12 @@
+# Requirements for the Financial Calculator Application
+# 
+# This project primarily uses Python's built-in modules and doesn't require
+# external dependencies for the main functionality.
+#
+# For testing, we use the built-in unittest module, so no additional
+# packages are required.
+#
+# If you want to add additional testing tools in the future, consider:
+# pytest>=7.0.0          # Alternative testing framework
+# coverage>=6.0          # Code coverage measurement
+# pytest-cov>=4.0.0      # Coverage plugin for pytest
